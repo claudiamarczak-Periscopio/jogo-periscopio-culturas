@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Culturas em Portugal</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Georgia, serif; background: #f0f7fa; color: #0d3b52; min-height: 100vh; padding: 1.5rem; }
+.jogo { max-width: 680px; margin: 0 auto; }
+.header { text-align: center; margin-bottom: 1.5rem; padding: 1.25rem; background: #1a6e8a; border-radius: 12px; }
+.header h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; color: #ffffff; }
+.header p { font-size: 13px; color: #cceaf4; }
+.modos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+.modo-btn { padding: 9px 8px; border: 1.5px solid #7ab8cc; border-radius: 8px; background: #fff; cursor: pointer; font-size: 13px; font-weight: 600; color: #1a6e8a; text-align: center; font-family: Georgia, serif; }
+.modo-btn:hover { background: #e0f2f9; }
+.modo-btn.ativo { border: 2px solid #0d3b52; color: #fff; background: #1a6e8a; }
+.area-jogo { background: #fff; border: 1.5px solid #b0d8e8; border-radius: 12px; padding: 1.5rem; min-height: 300px; }
+.pontos { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.badge { font-size: 13px; padding: 4px 12px; border-radius: 20px; background: #1a6e8a; color: #fff; font-weight: 600; }
+.progresso { font-size: 13px; color: #5a9ab5; }
+.pergunta { font-size: 15px; color: #0d3b52; margin-bottom: 1.25rem; line-height: 1.6; }
+.opcoes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.opcao { padding: 10px 14px; border: 1.5px solid #b0d8e8; border-radius: 8px; background: #f0f7fa; cursor: pointer; font-size: 14px; color: #0d3b52; text-align: left; font-family: Georgia, serif; }
+.opcao:hover:not(:disabled) { background: #e0f2f9; border-color: #1a6e8a; }
+.opcao.certa { background: #d4f0e0; border-color: #2a9d6e; color: #1a5c40; font-weight: 600; }
+.opcao.errada { background: #fde8e0; border-color: #d85a30; color: #8b3318; }
+.opcao:disabled { cursor: default; }
+.feedback { margin-top: 1rem; padding: 10px 14px; border-radius: 8px; font-size: 14px; line-height: 1.6; display: none; }
+.feedback.certo { background: #d4f0e0; color: #1a5c40; display: block; border-left: 3px solid #2a9d6e; }
+.feedback.errado { background: #fde8e0; color: #8b3318; display: block; border-left: 3px solid #d85a30; }
+.btn-proximo { margin-top: 1rem; padding: 9px 18px; border: 1.5px solid #1a6e8a; border-radius: 8px; background: #fff; cursor: pointer; font-size: 14px; font-weight: 600; color: #1a6e8a; display: none; font-family: Georgia, serif; }
+.btn-proximo:hover { background: #e0f2f9; }
+.associacao { display: flex; gap: 12px; }
+.col { flex: 1; display: flex; flex-direction: column; gap: 7px; }
+.col-titulo { font-size: 11px; color: #5a9ab5; margin-bottom: 3px; text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; }
+.item-assoc { padding: 9px 12px; border: 1.5px solid #b0d8e8; border-radius: 8px; font-size: 13px; cursor: pointer; background: #f0f7fa; color: #0d3b52; transition: all 0.2s; }
+.item-assoc:hover { background: #e0f2f9; }
+.item-assoc.selecionado { border: 2.5px solid #0d3b52; background: #cce8f4; font-weight: 600; }
+.item-assoc.incorreto { background: #fde8e0; border-color: #d85a30; color: #8b3318; }
+.p0 { background: #fde8f5 !important; border-color: #c4569e !important; color: #7a2060 !important; cursor: default !important; }
+.p1 { background: #e8f8e8 !important; border-color: #2a9d6e !important; color: #1a5c40 !important; cursor: default !important; }
+.p2 { background: #fff4e0 !important; border-color: #d4860a !important; color: #7a4d05 !important; cursor: default !important; }
+.p3 { background: #e8eafd !important; border-color: #5560d4 !important; color: #2a3390 !important; cursor: default !important; }
+.p4 { background: #fdeee8 !important; border-color: #d86030 !important; color: #7a2c10 !important; cursor: default !important; }
+.p5 { background: #e8f8fd !important; border-color: #1a9ec4 !important; color: #0a5070 !important; cursor: default !important; }
+.adivinha-dica { font-size: 13px; color: #5a9ab5; margin-bottom: 6px; font-style: italic; }
+.adivinha-texto { font-size: 14px; color: #0d3b52; margin-bottom: 1rem; line-height: 1.7; padding: 12px; background: #f0f7fa; border-radius: 8px; border-left: 3px solid #1a6e8a; }
+.resultado-final { text-align: center; padding: 2rem 1rem; }
+.resultado-final .num { font-size: 52px; font-weight: 700; color: #1a6e8a; }
+.resultado-final .msg { font-size: 14px; color: #5a9ab5; margin: 8px 0 1.5rem; line-height: 1.6; }
+.btn-reiniciar { padding: 10px 24px; border: none; border-radius: 8px; background: #1a6e8a; cursor: pointer; font-size: 14px; font-weight: 600; color: #fff; font-family: Georgia, serif; }
+.btn-reiniciar:hover { background: #0d3b52; }
+.rodape { text-align: center; margin-top: 1.25rem; font-size: 12px; color: #7ab8cc; }
+.rodape a { color: #1a6e8a; text-decoration: none; font-weight: 600; }
+@media (max-width: 480px) {
+  .opcoes { grid-template-columns: 1fr; }
+  .associacao { flex-direction: column; }
+  body { padding: 1rem; }
+}
+</style>
+</head>
+<body>
+<div class="jogo">
+  <div class="header">
+    <h1>Culturas em Portugal</h1>
+    <p>Descobre as comunidades que fazem parte de Portugal</p>
+  </div>
+  <div class="modos">
+    <button class="modo-btn ativo" onclick="mudarModo('quiz')">Quiz</button>
+    <button class="modo-btn" onclick="mudarModo('associacao')">Associacao</button>
+    <button class="modo-btn" onclick="mudarModo('adivinha')">Adivinha</button>
+  </div>
+  <div class="area-jogo" id="area"></div>
+  <div class="rodape">Um projeto <a href="https://www.operiscopio.com" target="_blank">O Periscopio</a></div>
+</div>
+<script>
+var est = {modo:'quiz',pontos:0,idx:0};
+var quiz = [
+  {p:"Qual e o prato tradicional do Brasil que os brasileiros em Portugal mais sentem falta?",ops:["Feijoada","Bacalhau","Caldo verde","Bolo de mel"],c:0,exp:"A feijoada e o prato simbolo do Brasil, feita com feijao preto e carnes defumadas."},
+  {p:"De que pais vem a comunidade imigrante mais numerosa em Portugal?",ops:["Angola","Brasil","Ucrania","Cabo Verde"],c:1,exp:"O Brasil lidera a imigracao em Portugal, com mais de 250 mil cidadaos registados."},
+  {p:"Qual instrumento e simbolo da musica tradicional cabo-verdiana?",ops:["Kora","Cavaquinho","Djembe","Balafon"],c:1,exp:"O cavaquinho e central na morna e no funana, generos musicais de Cabo Verde."},
+  {p:"Qual e a festa mais importante do calendario ucraniano?",ops:["Pascoa ortodoxa","Carnaval","Sao Joao","Dia dos Mortos"],c:0,exp:"A Pascoa ortodoxa e a celebracao mais sagrada para os ucranianos, com tradicoes unicas de ovos decorados."},
+  {p:"Qual destas comidas e originaria de Angola?",ops:["Mufete","Cachupa","Matapa","Moamba"],c:3,exp:"A moamba de galinha e um dos pratos mais emblematicos de Angola, feita com oleo de palma."},
+  {p:"O Dia de Tiradentes e feriado nacional de que pais?",ops:["Brasil","Venezuela","Cabo Verde","Angola"],c:0,exp:"Tiradentes e heroi da independencia brasileira, celebrado a 21 de abril."}
+];
+var assocPares = [
+  {pais:"Brasil",elem:"Carnaval do Rio"},
+  {pais:"Cabo Verde",elem:"Morna"},
+  {pais:"Ucrania",elem:"Pysanky"},
+  {pais:"Mocambique",elem:"Maputo"},
+  {pais:"Angola",elem:"Kuduro"},
+  {pais:"Nepal",elem:"Monte Evereste"}
+];
+var adivinha = [
+  {desc:"Sou o maior pais lusofono do mundo. A minha culinaria mistura influencias indigenas, africanas e europeias. Tenho a maior floresta tropical do planeta.",resp:["Brasil","Portugal","Angola","Mocambique"],c:0},
+  {desc:"Sou um arquipelago no Atlantico. A minha musica, a morna, e Património da Humanidade. A minha culinaria tem a cachupa como prato nacional.",resp:["Sao Tome","Acores","Cabo Verde","Madeira"],c:2},
+  {desc:"Venho do leste europeu e fugi de uma guerra em 2022. A minha lingua usa o alfabeto cirilico. O borsch e uma das minhas sopas mais famosas.",resp:["Russia","Polonia","Romenia","Ucrania"],c:3},
+  {desc:"Sou um pais do sul da Asia. Os meus compatriotas trabalham muito na construcao em Portugal. O Monte Evereste fica na minha fronteira.",resp:["India","Nepal","Bangladesh","Sri Lanka"],c:1}
+];
+function mudarModo(m){
+  est.modo=m;est.pontos=0;est.idx=0;
+  var b=document.querySelectorAll('.modo-btn');
+  var ms=['quiz','associacao','adivinha'];
+  for(var i=0;i<b.length;i++){if(ms[i]===m)b[i].classList.add('ativo');else b[i].classList.remove('ativo');}
+  render();
+}
+function render(){
+  var a=document.getElementById('area');
+  if(est.modo==='quiz')rQuiz(a);
+  else if(est.modo==='associacao')rAssoc(a);
+  else rAdiv(a);
+}
+function rQuiz(a){
+  if(est.idx>=quiz.length){rFim(a);return;}
+  var q=quiz[est.idx];
+  var ops='';
+  for(var i=0;i<q.ops.length;i++)ops+='<button class="opcao" onclick="rQ('+i+')">'+q.ops[i]+'</button>';
+  a.innerHTML='<div class="pontos"><span class="badge">'+est.pontos+' pts</span><span class="progresso">'+(est.idx+1)+'/'+quiz.length+'</span></div><div class="pergunta">'+q.p+'</div><div class="opcoes">'+ops+'</div><div class="feedback" id="fb"></div><button class="btn-proximo" id="bp" onclick="nQ()">Proxima</button>';
+}
+function rQ(i){
+  var q=quiz[est.idx];
+  var btns=document.querySelectorAll('.opcao');
+  for(var j=0;j<btns.length;j++)btns[j].disabled=true;
+  btns[q.c].classList.add('certa');
+  var fb=document.getElementById('fb');
+  if(i===q.c){est.pontos++;btns[i].classList.add('certa');fb.className='feedback certo';fb.textContent='Correto! '+q.exp;}
+  else{btns[i].classList.add('errada');fb.className='feedback errado';fb.textContent='Incorreto. '+q.exp;}
+  document.getElementById('bp').style.display='inline-block';
+}
+function nQ(){est.idx++;rQuiz(document.getElementById('area'));}
+var asel=null,_al=[],_ar=[];
+function rAssoc(a){
+  asel=null;
+  var idx=[];for(var i=0;i<assocPares.length;i++)idx.push(i);
+  _al=idx.slice().sort(function(){return Math.random()-.5;});
+  _ar=idx.slice().sort(function(){return Math.random()-.5;});
+  var esq='',dir='';
+  for(var i=0;i<_al.length;i++){
+    esq+='<div class="item-assoc" id="e'+i+'" onclick="sA(\'e\','+i+')">'+assocPares[_al[i]].pais+'</div>';
+    dir+='<div class="item-assoc" id="d'+i+'" onclick="sA(\'d\','+i+')">'+assocPares[_ar[i]].elem+'</div>';
+  }
+  a.innerHTML='<div class="pontos"><span class="badge" id="pa">0 pares</span><span class="progresso">Liga o pais ao elemento cultural</span></div><div class="associacao"><div class="col"><div class="col-titulo">Pais</div>'+esq+'</div><div class="col"><div class="col-titulo">Elemento cultural</div>'+dir+'</div></div><div class="feedback" id="fa"></div>';
+}
+function temP(el){for(var i=0;i<6;i++)if(el.classList.contains('p'+i))return true;return false;}
+function sA(lado,idx){
+  var el=document.getElementById(lado+idx);
+  if(temP(el))return;
+  var todos=document.querySelectorAll('.item-assoc');
+  if(!asel){
+    for(var i=0;i<todos.length;i++)if(!temP(todos[i]))todos[i].classList.remove('selecionado');
+    el.classList.add('selecionado');asel={lado:lado,idx:idx};
+  } else if(asel.lado===lado){
+    for(var i=0;i<todos.length;i++)if(!temP(todos[i]))todos[i].classList.remove('selecionado');
+    el.classList.add('selecionado');asel={lado:lado,idx:idx};
+  } else {
+    var ei=(lado==='d')?asel.idx:idx;
+    var di=(lado==='d')?idx:asel.idx;
+    var eEl=document.getElementById('e'+ei);
+    var dEl=document.getElementById('d'+di);
+    if(_al[ei]===_ar[di]){
+      var pc='p'+(_al[ei]%6);
+      eEl.classList.remove('selecionado');eEl.classList.add(pc);eEl.onclick=null;
+      dEl.classList.remove('selecionado');dEl.classList.add(pc);dEl.onclick=null;
+      var done=0;for(var i=0;i<6;i++)done+=document.querySelectorAll('.item-assoc.p'+i).length;
+      done=done/2;
+      document.getElementById('pa').textContent=done+' pares';
+      if(done===assocPares.length){var f=document.getElementById('fa');f.className='feedback certo';f.textContent='Parabens! Todos os pares corretos!';}
+    } else {
+      eEl.classList.add('incorreto');dEl.classList.add('incorreto');
+      setTimeout(function(){eEl.classList.remove('incorreto','selecionado');dEl.classList.remove('incorreto','selecionado');},800);
+    }
+    asel=null;
+  }
+}
+function rAdiv(a){
+  if(est.idx>=adivinha.length){rFim(a);return;}
+  var q=adivinha[est.idx];
+  var ops='';
+  for(var i=0;i<q.resp.length;i++)ops+='<button class="opcao" onclick="rA('+i+')">'+q.resp[i]+'</button>';
+  a.innerHTML='<div class="pontos"><span class="badge">'+est.pontos+' pts</span><span class="progresso">'+(est.idx+1)+'/'+adivinha.length+'</span></div><div class="adivinha-dica">Quem sou eu?</div><div class="adivinha-texto">'+q.desc+'</div><div class="opcoes">'+ops+'</div><div class="feedback" id="fb"></div><button class="btn-proximo" id="bp" onclick="nA()">Proxima</button>';
+}
+function rA(i){
+  var q=adivinha[est.idx];
+  var btns=document.querySelectorAll('.opcao');
+  for(var j=0;j<btns.length;j++)btns[j].disabled=true;
+  btns[q.c].classList.add('certa');
+  var fb=document.getElementById('fb');
+  if(i===q.c){est.pontos++;btns[i].classList.add('certa');fb.className='feedback certo';fb.textContent='Correto!';}
+  else{btns[i].classList.add('errada');fb.className='feedback errado';fb.textContent='A resposta era: '+q.resp[q.c];}
+  document.getElementById('bp').style.display='inline-block';
+}
+function nA(){est.idx++;rAdiv(document.getElementById('area'));}
+function rFim(a){
+  var total=(est.modo==='quiz')?quiz.length:adivinha.length;
+  var pct=Math.round((est.pontos/total)*100);
+  var msg=pct>=80?'Excelente! Conheces muito bem as culturas imigrantes em Portugal!':pct>=50?'Bom trabalho! Continua a aprender!':'Ainda ha muito para descobrir. Tenta novamente!';
+  a.innerHTML='<div class="resultado-final"><div class="num">'+est.pontos+'/'+total+'</div><div class="msg">'+msg+'</div><button class="btn-reiniciar" onclick="mudarModo(\''+est.modo+'\')">Jogar novamente</button></div>';
+}
+render();
+</script>
+</body>
+</html>
